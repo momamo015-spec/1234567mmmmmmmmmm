@@ -1,0 +1,156 @@
+// Phase 0 Security TDD Specification Tests (Dirty Dozen Adversarial Suite)
+export interface SecurityTestCase {
+  id: number;
+  name: string;
+  operation: 'get' | 'list' | 'create' | 'update' | 'delete';
+  path: string;
+  auth: { uid: string; email_verified: boolean } | null;
+  payload?: Record<string, unknown>;
+  expected: 'PERMISSION_DENIED';
+}
+
+export const DIRTY_DOZEN_TESTS: SecurityTestCase[] = [
+  {
+    id: 1,
+    name: 'Unauthenticated read on user profile',
+    operation: 'get',
+    path: '/users/userA',
+    auth: null,
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 2,
+    name: 'Cross-user PII read attempt',
+    operation: 'get',
+    path: '/users/userA',
+    auth: { uid: 'userB', email_verified: true },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 3,
+    name: 'Unverified email profile creation',
+    operation: 'create',
+    path: '/users/userA',
+    auth: { uid: 'userA', email_verified: false },
+    payload: {
+      uid: 'userA',
+      email: 'a@nova.com',
+      displayName: 'User A',
+      avatarColor: '#4285F4',
+      preferredEngine: 'hybrid',
+      theme: 'light',
+    },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 4,
+    name: 'Identity spoofing in uid field',
+    operation: 'create',
+    path: '/users/userA',
+    auth: { uid: 'userA', email_verified: true },
+    payload: {
+      uid: 'userB',
+      email: 'a@nova.com',
+      displayName: 'User A',
+      avatarColor: '#4285F4',
+      preferredEngine: 'hybrid',
+      theme: 'light',
+    },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 5,
+    name: 'Shadow field injection (isAdmin)',
+    operation: 'create',
+    path: '/users/userA',
+    auth: { uid: 'userA', email_verified: true },
+    payload: {
+      uid: 'userA',
+      email: 'a@nova.com',
+      displayName: 'User A',
+      avatarColor: '#4285F4',
+      preferredEngine: 'hybrid',
+      theme: 'light',
+      isAdmin: true,
+    },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 6,
+    name: 'Immutable createdAt mutation on update',
+    operation: 'update',
+    path: '/users/userA',
+    auth: { uid: 'userA', email_verified: true },
+    payload: { createdAt: '2020-01-01T00:00:00Z' },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 7,
+    name: 'Forged past timestamp on create',
+    operation: 'create',
+    path: '/users/userA',
+    auth: { uid: 'userA', email_verified: true },
+    payload: {
+      uid: 'userA',
+      email: 'a@nova.com',
+      displayName: 'User A',
+      avatarColor: '#4285F4',
+      preferredEngine: 'hybrid',
+      theme: 'light',
+      createdAt: '2020-01-01T00:00:00Z',
+      updatedAt: '2020-01-01T00:00:00Z',
+    },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 8,
+    name: 'Oversized displayName DoW poisoning',
+    operation: 'create',
+    path: '/users/userA',
+    auth: { uid: 'userA', email_verified: true },
+    payload: {
+      uid: 'userA',
+      email: 'a@nova.com',
+      displayName: 'A'.repeat(10000),
+      avatarColor: '#4285F4',
+      preferredEngine: 'hybrid',
+      theme: 'light',
+    },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 9,
+    name: 'Invalid document ID characters',
+    operation: 'create',
+    path: '/users/userA/history/bad$id!',
+    auth: { uid: 'userA', email_verified: true },
+    payload: { uid: 'userA', query: 'test', engineMode: 'hybrid', tab: 'all' },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 10,
+    name: 'Orphaned history record without parent user document',
+    operation: 'create',
+    path: '/users/userA/history/h1',
+    auth: { uid: 'userA', email_verified: true },
+    payload: { uid: 'userA', query: 'test', engineMode: 'hybrid', tab: 'all' },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 11,
+    name: 'Cross-tenant list on bookmarks',
+    operation: 'list',
+    path: '/users/userA/bookmarks',
+    auth: { uid: 'userB', email_verified: true },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    id: 12,
+    name: 'Invalid enum value / missing required url in bookmark',
+    operation: 'create',
+    path: '/users/userA/bookmarks/b1',
+    auth: { uid: 'userA', email_verified: true },
+    payload: { uid: 'userA', title: 'Test', snippet: 'abc', displayLink: 'example.com', sourceType: 'google' },
+    expected: 'PERMISSION_DENIED',
+  },
+];

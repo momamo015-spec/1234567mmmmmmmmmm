@@ -1,0 +1,162 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user profile and NOVA search preferences.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "avatarColor": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "preferredEngine": {
+          "type": "string",
+          "enum": ["hybrid", "google", "duckduckgo"],
+          "maxLength": 32
+        },
+        "theme": {
+          "type": "string",
+          "enum": ["light", "dark"],
+          "maxLength": 16
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "displayName", "avatarColor", "preferredEngine", "theme", "createdAt", "updatedAt"]
+    },
+    "SearchHistoryItem": {
+      "title": "SearchHistoryItem",
+      "description": "A user search query saved in history.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "query": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "engineMode": {
+          "type": "string",
+          "enum": ["hybrid", "google", "duckduckgo"],
+          "maxLength": 32
+        },
+        "tab": {
+          "type": "string",
+          "enum": ["all", "images", "videos", "news", "drive"],
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "query", "engineMode", "tab", "createdAt"]
+    },
+    "BookmarkItem": {
+      "title": "BookmarkItem",
+      "description": "A bookmarked search result saved by the user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "snippet": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "displayLink": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "sourceType": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "title", "url", "snippet", "displayLink", "sourceType", "createdAt"]
+    },
+    "ShortcutItem": {
+      "title": "ShortcutItem",
+      "description": "A user-configured home screen shortcut tile.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "iconColor": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "title", "url", "iconColor", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user profile and preferences isolated per authenticated owner."
+    },
+    "/users/{userId}/history/{historyId}": {
+      "schema": { "$ref": "#/entities/SearchHistoryItem" },
+      "description": "Search history items belonging to the user."
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": { "$ref": "#/entities/BookmarkItem" },
+      "description": "Saved search bookmarks belonging to the user."
+    },
+    "/users/{userId}/shortcuts/{shortcutId}": {
+      "schema": { "$ref": "#/entities/ShortcutItem" },
+      "description": "Custom quick shortcuts belonging to the user."
+    }
+  }
+}

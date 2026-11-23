@@ -1,0 +1,6 @@
+{
+  "name": "NOVA | نوفا",
+  "description": "محرك بحث ذكي باللغة العربية يجمع بين Google Custom Search و DuckDuckGo والبحث المدعوم بالذكاء الاصطناعي وتكامل Google Drive.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
